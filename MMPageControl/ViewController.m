@@ -7,23 +7,53 @@
 //
 
 #import "ViewController.h"
+#import "MMPageControl.h"
 
-@interface ViewController ()
+@interface ViewController ()<UIScrollViewDelegate>
 
+@property (nonatomic ,strong) MMPageControl * pageControl;
+@property (nonatomic ,strong) UIScrollView * scrollView;
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
+    CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
+    
+    self.pageControl = [[MMPageControl alloc] init];
+    self.pageControl.numberOfPages = 4;
+    self.pageControl.frame = CGRectMake(0, 100, screenWidth, 80);
+    [self.view addSubview:self.pageControl];
+    
+    self.scrollView = [[UIScrollView alloc] init];
+    self.scrollView.frame = CGRectMake(0, 200, screenWidth, 200);
+    self.scrollView.pagingEnabled = YES;
+    self.scrollView.delegate = self;
+    for (NSInteger index = 0; index < self.pageControl.numberOfPages; index ++) {
+        
+        UIView * view = [UIView new];
+        view.frame = CGRectMake(index * screenWidth, 0, screenWidth, self.scrollView.frame.size.height);
+        UIColor * bgColor = [UIColor colorWithRed:drand48() green:drand48() blue:drand48() alpha:1.0];
+        view.backgroundColor = bgColor;
+        [self.scrollView addSubview:view];
+    }
+    self.scrollView.contentSize = CGSizeMake(self.pageControl.numberOfPages * screenWidth, self.scrollView.frame.size.height);
+    [self.view addSubview:self.scrollView];
 }
 
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+#pragma mark - UIScrollViewDelegate M
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+
+    CGFloat total = scrollView.contentSize.width - scrollView.bounds.size.width;
+    CGFloat offset = scrollView.contentOffset.x;
+    CGFloat percent = offset / total;
+    
+    CGFloat progress = percent * (self.pageControl.numberOfPages - 1);
+    
+    self.pageControl.progress = progress;
 }
-
-
 @end
