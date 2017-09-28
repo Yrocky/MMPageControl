@@ -23,12 +23,14 @@
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     
     self.pageControl = [[MMPageControl alloc] init];
-    self.pageControl.numberOfPages = 4;
+    self.pageControl.numberOfPages = 6;
+    self.pageControl.indicatorMargin = 20;
+    self.pageControl.indicatorDiameter = 40;
     self.pageControl.frame = CGRectMake(0, 100, screenWidth, 80);
     [self.view addSubview:self.pageControl];
     
     self.scrollView = [[UIScrollView alloc] init];
-    self.scrollView.frame = CGRectMake(0, 200, screenWidth, 200);
+    self.scrollView.frame = CGRectMake(0, CGRectGetMaxY(self.pageControl.frame) + 100, screenWidth, 200);
     self.scrollView.pagingEnabled = YES;
     self.scrollView.delegate = self;
     for (NSInteger index = 0; index < self.pageControl.numberOfPages; index ++) {
