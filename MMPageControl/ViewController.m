@@ -23,7 +23,7 @@
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     
     self.pageControl = [[MMPageControl alloc] init];
-    self.pageControl.numberOfPages = 2;
+    self.pageControl.numberOfPages = 5;
     self.pageControl.indicatorMargin = 20;
     self.pageControl.indicatorDiameter = 40;
     self.pageControl.frame = CGRectMake(0, 100, screenWidth, 80);
@@ -43,9 +43,18 @@
     }
     self.scrollView.contentSize = CGSizeMake(self.pageControl.numberOfPages * screenWidth, self.scrollView.frame.size.height);
     [self.view addSubview:self.scrollView];
+    
+    UIStepper * step = [[UIStepper alloc] initWithFrame:CGRectMake(40, CGRectGetMaxY(self.scrollView.frame) + 40, 100, 40)];
+    step.maximumValue = self.pageControl.numberOfPages - 1;
+    step.minimumValue = 0;
+    [step addTarget:self action:@selector(stepAction:) forControlEvents:UIControlEventValueChanged];
+    [self.view addSubview:step];
 }
 
-
+- (void) stepAction:(UIStepper *)step{
+    
+    [self.pageControl setProgress:step.value animated:YES];
+}
 #pragma mark - UIScrollViewDelegate M
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{

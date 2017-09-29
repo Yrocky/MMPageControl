@@ -160,10 +160,11 @@
 #pragma mark - Setter M
 
 - (void)setNumberOfPages:(NSInteger)numberOfPages{
-
-    _numberOfPages = numberOfPages;
-    [self updateNumberOfPages:numberOfPages];
-    self.hidden = self.hidesForSinglePage && (numberOfPages <= 1);
+    if (numberOfPages) {
+        _numberOfPages = numberOfPages;
+        [self updateNumberOfPages:numberOfPages];
+        self.hidden = self.hidesForSinglePage && (numberOfPages <= 1);
+    }
 }
 
 - (void)setHidesForSinglePage:(BOOL)hidesForSinglePage{
@@ -216,6 +217,9 @@
 
 - (void)updateNumberOfPages:(NSInteger)numberOfPges{
 
+    if (numberOfPges < 1) {
+        return;
+    }
     //
     [self.indicatorInactiveLayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
     [self.indicatorInactiveLayers removeAllObjects];
