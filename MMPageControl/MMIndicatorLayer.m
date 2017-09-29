@@ -54,10 +54,6 @@
     CGFloat r = self.frame.size.height / 2;
     CGFloat m = self.margin;
     
-    CGPoint point = (CGPoint){
-        r * (1 - 1 / sqrt(2)),
-        r * (1 - 1 / sqrt(2))
-    };
     CGPoint center = (CGPoint){
         r, r
     };
@@ -71,7 +67,11 @@
                       endAngle:DEGREES_TO_RADIANS(360)
                      clockwise:YES];
     }else{
-        [path moveToPoint:point];
+
+        [path moveToPoint:(CGPoint){
+            r * (1 - 1 / sqrt(2)),
+            r * (1 - 1 / sqrt(2))
+        }];
         
         // add head arc
         [self addEdgeCircelArcPath:path

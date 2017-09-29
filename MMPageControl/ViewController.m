@@ -23,7 +23,7 @@
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     
     self.pageControl = [[MMPageControl alloc] init];
-    self.pageControl.numberOfPages = 6;
+    self.pageControl.numberOfPages = 2;
     self.pageControl.indicatorMargin = 20;
     self.pageControl.indicatorDiameter = 40;
     self.pageControl.frame = CGRectMake(0, 100, screenWidth, 80);
