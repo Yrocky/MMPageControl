@@ -200,10 +200,10 @@
 
     [super setupDefault];
     
-    self.textColor = [UIColor colorWithRed:0.43 green:0.51 blue:0.61 alpha:1.00];
+    self.textColor = [UIColor colorWithHexString:@"#6E819B"];
     
+    //
     _textLayer = [CATextLayer layer];
-//    _textLayer.backgroundColor = [UIColor redColor].CGColor;
     _textLayer.truncationMode = kCATruncationEnd;
     _textLayer.alignmentMode = kCAAlignmentCenter;
     _textLayer.wrapped = YES;
@@ -217,8 +217,9 @@
     
     _textLayer.string = self.text;
     _textLayer.foregroundColor = self.textColor.CGColor;
+    
     CGRect frame = (CGRect){CGPointZero,self.frame.size};
-    _textLayer.frame = CGRectInset(frame, 10, 10);
+    _textLayer.frame = CGRectInset(frame, 0, 10);
     
     UIFont *font = [UIFont systemFontOfSize:frame.size.width - 22];
     CFStringRef fontName = (__bridge CFStringRef)font.fontName;
@@ -226,7 +227,6 @@
     _textLayer.font = fontRef;
     _textLayer.fontSize = font.pointSize;
 }
-
 #pragma mark - Setter M
 
 - (void)setText:(NSString *)text{
@@ -240,5 +240,87 @@
     _textColor = textColor;
     [self setNeedsLayout];
 }
+
+@end
+
+@interface MMIndicatorContentLayer ()
+@end
+
+@implementation MMIndicatorContentLayer
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _indicatorLayers = [NSMutableArray array];
+    }
+    return self;
+}
+
+-(void)layoutSublayers{
+    
+    [super layoutSublayers];
+
+    __block CGRect frame = (CGRect){
+        CGPointZero,
+        self.indicatorDiameter,
+        self.frame.size.height
+    };
+    [_indicatorLayers enumerateObjectsUsingBlock:^(MMIndicatorLayer * indicatorLayer, NSUInteger index, BOOL * _Nonnull stop) {
+        indicatorLayer.frame = frame;
+        indicatorLayer.hidden = NO;
+        frame.origin.x += (self.indicatorDiameter + self.indicatorMargin);
+    }];
+}
+
+- (void)clearAllIndicator{
+    
+    [_indicatorLayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
+    [_indicatorLayers removeAllObjects];
+}
+
+- (void)addIndicator:(NSString *)text{
+    
+    MMTextIndicatorLayer * indicatorLayer = [MMTextIndicatorLayer layer];
+    indicatorLayer.textColor = self.indicatorColor;
+    indicatorLayer.text = text;
+    [self addSublayer:indicatorLayer];
+    [_indicatorLayers addObject:indicatorLayer];
+}
+
+- (void)setIndicatorColor:(UIColor *)indicatorColor{
+    
+    [super setIndicatorColor:indicatorColor];
+    for (MMTextIndicatorLayer * layer in _indicatorLayers) {
+        layer.textColor = indicatorColor;
+    }
+}
+
+@end
+
+@implementation UIColor (HEX)
+
++ (UIColor *)colorWithHexString:(NSString *)stringToConvert{
+    
+    if ([stringToConvert hasPrefix:@"#"]) {
+        stringToConvert = [stringToConvert substringFromIndex:1];
+    }
+    NSScanner *scanner = [NSScanner scannerWithString:stringToConvert];
+    unsigned hexNum;
+    if (![scanner scanHexInt:&hexNum]) return nil;
+    return [UIColor colorWithRGBHex:hexNum];
+}
+
++ (UIColor *)colorWithRGBHex:(UInt32)hex{
+    int r = (hex >> 16) & 0xFF;
+    int g = (hex >> 8) & 0xFF;
+    int b = (hex) & 0xFF;
+    
+    return [UIColor colorWithRed:r / 255.0f
+                           green:g / 255.0f
+                            blue:b / 255.0f
+                           alpha:1.0f];
+}
+
 
 @end

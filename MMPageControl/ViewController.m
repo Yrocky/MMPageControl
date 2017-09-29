@@ -45,6 +45,10 @@
     [self.view addSubview:self.scrollView];
     
     UIStepper * step = [[UIStepper alloc] initWithFrame:CGRectMake(40, CGRectGetMaxY(self.scrollView.frame) + 40, 100, 40)];
+    step.center = (CGPoint){
+        CGRectGetMidX(self.scrollView.frame),
+        CGRectGetMaxY(self.scrollView.frame) + 40
+    };
     step.maximumValue = self.pageControl.numberOfPages - 1;
     step.minimumValue = 0;
     [step addTarget:self action:@selector(stepAction:) forControlEvents:UIControlEventValueChanged];

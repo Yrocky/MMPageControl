@@ -25,10 +25,11 @@
 @property (nonatomic ,strong) CADisplayLink * displayLink;
 
 @property (nonatomic ,strong) MMBgIndicatorLayer * indicatorBackgroundLayer;
+@property (nonatomic ,strong) MMIndicatorContentLayer * bottomIndicatorContentLayer;
+@property (nonatomic ,strong) MMIndicatorContentLayer * topIndicatorContentLayer;
+@property (nonatomic ,strong) MMIndicatorLayer * indicatorActiveLayer;
 
-@property (nonatomic ,strong) NSMutableArray <MMTextIndicatorLayer *>* indicatorInactiveLayers;
-
-@property (nonatomic ,strong) MMTextIndicatorLayer * indicatorActiveLayer;
+@property (nonatomic ,assign) CGRect activeLayerFrame;
 @end
 
 @implementation MMPageControl
@@ -55,33 +56,42 @@
 
 - (void) setupDisplayLink{
 
-    self.backgroundColor = [UIColor colorWithRed:0.15 green:0.23 blue:0.35 alpha:1.00];
+    self.backgroundColor = [UIColor colorWithHexString:@"#273A58"];
     
     //
     self.indicatorDiameter = 20;
     self.indicatorMargin = 10;
     
     //
-    self.activeTintColor = [UIColor colorWithRed:0.26 green:0.76 blue:0.43 alpha:1.00];
-    self.inactiveTintColor = [UIColor colorWithRed:0.82 green:0.94 blue:0.85 alpha:1.00];
+    self.activeTintColor = [UIColor colorWithHexString:@"#42C36D"];
+    self.inactiveTintColor = [UIColor colorWithHexString:@"#D0EFDB"];
     
     //
-    self.activeTextColor = [UIColor colorWithRed:0.82 green:0.94 blue:0.85 alpha:1.00];
-    self.inactiveTextColor = [UIColor colorWithRed:0.43 green:0.51 blue:0.61 alpha:1.00];
-    
-    //
-    self.indicatorInactiveLayers = [NSMutableArray array];
+    self.activeTextColor = [UIColor colorWithHexString:@"#D0EFDB"];
+    self.inactiveTextColor = [UIColor colorWithHexString:@"#6E819B"];
     
     //
     self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateFrame)];
     [self.displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     
-    //
+    // bg
     self.indicatorBackgroundLayer = [MMBgIndicatorLayer layer];
+    self.indicatorBackgroundLayer.indicatorColor = self.inactiveTintColor;
     [self.layer addSublayer:self.indicatorBackgroundLayer];
     
     //
-    self.indicatorActiveLayer = [MMTextIndicatorLayer layer];
+    self.bottomIndicatorContentLayer = [MMIndicatorContentLayer layer];
+    self.bottomIndicatorContentLayer.indicatorColor = self.inactiveTextColor;
+    [self.layer addSublayer:self.bottomIndicatorContentLayer];
+    
+    //
+    self.topIndicatorContentLayer = [MMIndicatorContentLayer layer];
+    self.topIndicatorContentLayer.indicatorColor = self.activeTextColor;
+    self.topIndicatorContentLayer.backgroundColor = self.activeTintColor.CGColor;
+    [self.layer addSublayer:self.topIndicatorContentLayer];
+    
+    // active
+    self.indicatorActiveLayer = [MMIndicatorLayer layer];
 }
 
 #pragma mark - API M
@@ -110,32 +120,30 @@
         self.indicatorDiameter
     };
     
-    __block UIBezierPath * path = [UIBezierPath bezierPathWithOvalInRect:(CGRect){CGPointZero,frame.size}];
+    self.activeLayerFrame = (CGRect){
+        CGPointZero,
+        frame.size
+    };
+
+    frame.size.width = self.intrinsicContentSize.width;
+    
+    UIBezierPath * path = [UIBezierPath bezierPathWithOvalInRect:self.activeLayerFrame];
+    
     //
     self.indicatorActiveLayer.indicatorColor = self.activeTintColor;
-    self.indicatorActiveLayer.textColor = self.activeTextColor;
     self.indicatorActiveLayer.path = path.CGPath;
-    self.indicatorActiveLayer.frame = frame;
     self.indicatorActiveLayer.hidden = NO;
     
     //
-    frame.size.width = self.intrinsicContentSize.width;
-    self.indicatorBackgroundLayer.indicatorColor = self.inactiveTintColor;
     self.indicatorBackgroundLayer.numberOfPages = self.numberOfPages;
     self.indicatorBackgroundLayer.margin = self.indicatorMargin;
     self.indicatorBackgroundLayer.frame = frame;
     
     //
-    frame.size.width = self.indicatorDiameter;
-    [self.indicatorInactiveLayers enumerateObjectsUsingBlock:^(MMIndicatorLayer * indicatorLayer, NSUInteger index, BOOL * _Nonnull stop) {
-        indicatorLayer.path = path.CGPath;
-        indicatorLayer.frame = frame;
-        indicatorLayer.hidden = NO;
-        frame.origin.x += (self.indicatorDiameter + self.indicatorMargin);
-    }];
+    self.topIndicatorContentLayer.frame = frame;
+    self.bottomIndicatorContentLayer.frame = frame;
     
     [self updateForProgress:self.progress];
-    
 }
 
 - (void)setTintColor:(UIColor *)tintColor{
@@ -182,24 +190,42 @@
 - (void)setInactiveTintColor:(UIColor *)inactiveTintColor{
 
     _inactiveTintColor = inactiveTintColor;
+    self.indicatorBackgroundLayer.indicatorColor = inactiveTintColor;
     [self setNeedsLayout];
 }
 
 - (void)setActiveTintColor:(UIColor *)activeTintColor{
 
     _activeTintColor = activeTintColor;
+    self.topIndicatorContentLayer.backgroundColor = activeTintColor.CGColor;
     [self setNeedsLayout];
+}
+
+- (void)setInactiveTextColor:(UIColor *)inactiveTextColor{
+    
+    _inactiveTextColor = inactiveTextColor;
+    self.bottomIndicatorContentLayer.indicatorColor = inactiveTextColor;
+}
+
+- (void)setActiveTextColor:(UIColor *)activeTextColor{
+    
+    _activeTextColor = activeTextColor;
+    self.topIndicatorContentLayer.indicatorColor = activeTextColor;
 }
 
 - (void)setIndicatorMargin:(CGFloat)indicatorMargin{
 
     _indicatorMargin = indicatorMargin;
+    self.topIndicatorContentLayer.indicatorMargin = indicatorMargin;
+    self.bottomIndicatorContentLayer.indicatorMargin = indicatorMargin;
     [self setNeedsLayout];
 }
 
 - (void)setIndicatorDiameter:(CGFloat)indicatorDiameter{
 
     _indicatorDiameter = indicatorDiameter;
+    self.topIndicatorContentLayer.indicatorDiameter = indicatorDiameter;
+    self.bottomIndicatorContentLayer.indicatorDiameter = indicatorDiameter;
     [self setNeedsLayout];
 }
 
@@ -212,7 +238,6 @@
 
 @end
 
-
 @implementation MMPageControl (Update)
 
 - (void)updateNumberOfPages:(NSInteger)numberOfPges{
@@ -221,19 +246,16 @@
         return;
     }
     //
-    [self.indicatorInactiveLayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
-    [self.indicatorInactiveLayers removeAllObjects];
-    for (NSInteger index = 0; index < numberOfPges; index ++) {
-        MMTextIndicatorLayer * indicatorLayer = [MMTextIndicatorLayer layer];
-        indicatorLayer.indicatorColor = self.inactiveTintColor;
-        indicatorLayer.textColor = self.inactiveTextColor;
-        indicatorLayer.text = [NSString stringWithFormat:@"%ld",index + 1];
-        [self.layer addSublayer:indicatorLayer];
-        [self.indicatorInactiveLayers addObject:indicatorLayer];
+    [self.topIndicatorContentLayer clearAllIndicator];
+    [self.bottomIndicatorContentLayer clearAllIndicator];
+    
+    for (NSUInteger index = 0; index < numberOfPges; index ++) {
+        NSString * text = [NSString stringWithFormat:@"%ld",index + 1];
+        [self.topIndicatorContentLayer addIndicator:text];
+        [self.bottomIndicatorContentLayer addIndicator:text];
     }
     
-    //
-    [self.layer addSublayer:self.indicatorActiveLayer];
+    self.topIndicatorContentLayer.mask = self.indicatorActiveLayer;
     
     [self setNeedsLayout];
     [self invalidateIntrinsicContentSize];
@@ -241,27 +263,24 @@
 
 - (void) updateForProgress:(CGFloat)progress{
 
-    if (self.indicatorInactiveLayers.count &&
-        self.numberOfPages > 1 &&
+    if (self.numberOfPages > 1 &&
         progress >= 0 &&
         progress <= self.numberOfPages - 1) {
         
-        CGRect min = self.indicatorInactiveLayers.firstObject.frame;
-        CGRect max = self.indicatorInactiveLayers.lastObject.frame;
-        
         NSInteger total = self.numberOfPages - 1;
-        CGFloat dist = max.origin.x - min.origin.x;
+        CGFloat dist = (self.numberOfPages - 1) * (self.indicatorDiameter +  self.indicatorMargin);
         CGFloat percent = progress / total;
         CGFloat offset = dist * percent;
-        CGRect frame = self.indicatorActiveLayer.frame;
-        frame.origin.x = min.origin.x + offset;
+        CGRect frame = self.activeLayerFrame;
+        frame.origin.x = offset;
 //        NSLog(@"offset:%f\nprogress:%f",offset,progress);
-        self.indicatorActiveLayer.text = [NSString stringWithFormat:@"%ld",self.currentPageIndex + 1];
         
         dist = self.indicatorDiameter * (self.currentPageIndex + 1) + self.currentPageIndex * self.indicatorMargin;
 //        NSLog(@"dist:%f",dist);
+        NSLog(@"frame:%@",NSStringFromCGRect(frame));
         
-        self.indicatorActiveLayer.frame = frame;
+        __block UIBezierPath * path = [UIBezierPath bezierPathWithOvalInRect:(CGRect){frame.origin,frame.size}];
+        self.indicatorActiveLayer.path = path.CGPath;
     }
 }
 
