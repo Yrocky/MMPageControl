@@ -6,7 +6,9 @@
 ![](img/sketch_page_control.png)
 
 #### 动态效果
-。。。
+* tag-2.0
+
+  ![](img/step-02.gif)
 
 #### 设计原稿
 
